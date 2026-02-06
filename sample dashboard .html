@@ -1,0 +1,1777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPTC Performance Management System - All Roles Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Serif+Khmer:wght@400;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #5B9BD5;
+            --accent-teal: #4ECDC4;
+            --deep-blue: #45B7D1;
+            --light-blue: #E8F4F8;
+            --bg-light: #F8FBFF;
+            --white: #FFFFFF;
+            --gray: #8B9DC3;
+            --dark-text: #2C3E50;
+            --success: #26D07C;
+            --warning: #FFA94D;
+            --danger: #FF6B6B;
+            
+            --font-main: 'Inter', sans-serif;
+            --font-khmer: 'Noto Serif Khmer', serif;
+            
+            --shadow-sm: 0 2px 8px rgba(91, 155, 213, 0.08);
+            --shadow-md: 0 4px 16px rgba(91, 155, 213, 0.12);
+            --shadow-lg: 0 8px 32px rgba(91, 155, 213, 0.16);
+        }
+
+        body {
+            font-family: var(--font-main);
+            background: linear-gradient(135deg, #E8F4F8 0%, #D4E9F7 100%);
+            min-height: 100vh;
+            color: var(--dark-text);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 280px;
+            height: 100vh;
+            background: var(--white);
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        .logo-section {
+            padding: 2rem 1.5rem;
+            border-bottom: 2px solid var(--light-blue);
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: var(--font-khmer);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: white;
+        }
+
+        .logo-text h2 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 0.25rem;
+        }
+
+        .logo-text p {
+            font-size: 0.875rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        .nav-section {
+            padding: 1.5rem 0;
+        }
+
+        .nav-title {
+            padding: 0.5rem 1.5rem;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--gray);
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem 1.5rem;
+            color: var(--gray);
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-item:hover {
+            background: var(--light-blue);
+            color: var(--primary-blue);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(90deg, var(--light-blue), transparent);
+            color: var(--primary-blue);
+            border-left-color: var(--primary-blue);
+        }
+
+        .nav-icon {
+            font-size: 1.375rem;
+            width: 24px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 280px;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+
+        .dashboard-view {
+            display: none;
+        }
+
+        .dashboard-view.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Header */
+        .page-header {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--dark-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .header-left p {
+            color: var(--gray);
+            font-size: 0.9375rem;
+        }
+
+        .role-badge {
+            padding: 0.625rem 1.5rem;
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
+            color: white;
+            border-radius: 999px;
+            font-weight: 700;
+            font-size: 0.875rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 1.75rem;
+            box-shadow: var(--shadow-md);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200px;
+            height: 200px;
+            background: radial-gradient(circle, var(--primary-blue) 0%, transparent 70%);
+            opacity: 0.05;
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .stat-icon.blue { background: linear-gradient(135deg, #E8F4F8, #D4E9F7); color: var(--primary-blue); }
+        .stat-icon.teal { background: linear-gradient(135deg, #E0F7F6, #C7F0ED); color: var(--accent-teal); }
+        .stat-icon.green { background: linear-gradient(135deg, #E6F9F0, #CCEEDE); color: var(--success); }
+        .stat-icon.orange { background: linear-gradient(135deg, #FFF4E6, #FFE8CC); color: var(--warning); }
+        .stat-icon.red { background: linear-gradient(135deg, #FFE8E8, #FFD4D4); color: var(--danger); }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--gray);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.75rem;
+        }
+
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--dark-text);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-change {
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.875rem;
+            border-radius: 999px;
+        }
+
+        .stat-change.positive { background: #E6F9F0; color: var(--success); }
+        .stat-change.warning { background: #FFF4E6; color: var(--warning); }
+        .stat-change.danger { background: #FFE8E8; color: var(--danger); }
+
+        /* Charts Section */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .chart-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+
+        .chart-card.col-12 { grid-column: span 12; }
+        .chart-card.col-8 { grid-column: span 8; }
+        .chart-card.col-6 { grid-column: span 6; }
+        .chart-card.col-4 { grid-column: span 4; }
+        .chart-card.col-3 { grid-column: span 3; }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--light-blue);
+        }
+
+        .chart-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--dark-text);
+        }
+
+        .chart-subtitle {
+            font-size: 0.875rem;
+            color: var(--gray);
+            margin-top: 0.25rem;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+
+        .chart-container.tall { height: 400px; }
+        .chart-container.short { height: 250px; }
+
+        /* Table Styles */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table thead th {
+            text-align: left;
+            padding: 1rem;
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: var(--gray);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--light-blue);
+        }
+
+        .data-table thead th:first-child { border-radius: 12px 0 0 0; }
+        .data-table thead th:last-child { border-radius: 0 12px 0 0; }
+
+        .data-table tbody tr {
+            background: var(--white);
+            border-bottom: 1px solid var(--light-blue);
+            transition: all 0.2s;
+        }
+
+        .data-table tbody tr:hover {
+            background: var(--light-blue);
+            transform: scale(1.01);
+        }
+
+        .data-table tbody td {
+            padding: 1.25rem 1rem;
+            font-size: 0.9375rem;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 1rem;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .badge.grade-a { background: #E6F9F0; color: var(--success); }
+        .badge.grade-b { background: #E8F4F8; color: var(--primary-blue); }
+        .badge.grade-c { background: #FFF4E6; color: var(--warning); }
+        .badge.grade-d { background: #FFE8E8; color: var(--danger); }
+
+        .badge.status-pending { background: #FFF4E6; color: var(--warning); }
+        .badge.status-completed { background: #E6F9F0; color: var(--success); }
+        .badge.status-overdue { background: #FFE8E8; color: var(--danger); }
+
+        /* Buttons */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: var(--font-main);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-outline {
+            background: white;
+            border: 2px solid var(--primary-blue);
+            color: var(--primary-blue);
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+        }
+
+        /* Progress Card */
+        .progress-card {
+            background: linear-gradient(135deg, var(--primary-blue), var(--accent-teal));
+            border-radius: 20px;
+            padding: 2rem;
+            color: white;
+            margin-bottom: 2rem;
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .progress-percentage {
+            font-size: 3rem;
+            font-weight: 800;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-bottom: 1.5rem;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: white;
+            border-radius: 999px;
+            transition: width 0.6s ease;
+        }
+
+        .progress-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .progress-item {
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .progress-item-label {
+            font-size: 0.875rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .progress-item-value {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .chart-card.col-8,
+            .chart-card.col-6,
+            .chart-card.col-4,
+            .chart-card.col-3 {
+                grid-column: span 12;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="logo-section">
+            <div class="logo">
+                <div class="logo-icon">ក.ប.ទ</div>
+                <div class="logo-text">
+                    <h2>MPTC PMS</h2>
+                    <p>Performance Management System</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-section">
+            <div class="nav-title">Select User Role</div>
+            <div class="nav-item active" onclick="switchDashboard('employee')">
+                <span class="nav-icon">👤</span>
+                <span>Employee</span>
+            </div>
+            <div class="nav-item" onclick="switchDashboard('manager')">
+                <span class="nav-icon">👥</span>
+                <span>Solid-Line Manager</span>
+            </div>
+            <div class="nav-item" onclick="switchDashboard('wglead')">
+                <span class="nav-icon">👨‍💼</span>
+                <span>Working Group Lead</span>
+            </div>
+            <div class="nav-item" onclick="switchDashboard('kpi')">
+                <span class="nav-icon">📋</span>
+                <span>KPI Authority</span>
+            </div>
+            <div class="nav-item" onclick="switchDashboard('hr')">
+                <span class="nav-icon">🏢</span>
+                <span>HR Administrator</span>
+            </div>
+            <div class="nav-item" onclick="switchDashboard('approver')">
+                <span class="nav-icon">✅</span>
+                <span>Final Approver</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- EMPLOYEE DASHBOARD -->
+        <div id="employee" class="dashboard-view active">
+            <div class="page-header">
+                <div class="header-left">
+                    <h1>Employee Dashboard</h1>
+                    <p>Personal performance overview and self-evaluation</p>
+                </div>
+                <div class="role-badge">
+                    <span>👤</span> Employee View
+                </div>
+            </div>
+
+            <!-- Personal Information Card -->
+            <div style="background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="border-bottom: 2px solid var(--light-blue); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--dark-text);">Personal Information</div>
+                    <div style="font-size: 0.875rem; color: var(--gray); margin-top: 0.25rem;">Employee details and reporting structure</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Name</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">NY CLINTON</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Position</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Senior Officer</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Department/WG</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">COE TEAM</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Manager</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Mr. Sokha Meas</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">📊</div>
+                    <div class="stat-label">My Overall Score</div>
+                    <div class="stat-value">92.5</div>
+                    <span class="stat-change positive">↑ 5.2 from last cycle</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">⭐</div>
+                    <div class="stat-label">My Grade</div>
+                    <div class="stat-value" style="color: var(--success);">A</div>
+                    <span class="stat-change positive">Excellent Performance</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">⏳</div>
+                    <div class="stat-label">Completion</div>
+                    <div class="stat-value">33%</div>
+                    <span class="stat-change warning">Section 2 Pending</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">📅</div>
+                    <div class="stat-label">Days Remaining</div>
+                    <div class="stat-value" style="color: var(--warning);">5</div>
+                    <span class="stat-change warning">Due Feb 10, 2026</span>
+                </div>
+            </div>
+
+            <div class="progress-card">
+                <div class="progress-header">
+                    <div class="progress-title">Appraisal Progress</div>
+                    <div class="progress-percentage">33%</div>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-fill" style="width: 33%"></div>
+                </div>
+                <div class="progress-items">
+                    <div class="progress-item">
+                        <div class="progress-item-label">Section 1: Work Performance</div>
+                        <div class="progress-item-value">✅ 1/5 KPIs</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-item-label">Section 2: Competency</div>
+                        <div class="progress-item-value">⚠️ 0/3</div>
+                    </div>
+                    <div class="progress-item">
+                        <div class="progress-item-label">Section 3: Attendance</div>
+                        <div class="progress-item-value">✅ 95.2%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card col-6">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Performance Summary</div>
+                            <div class="chart-subtitle">3-section breakdown</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="employeeDonut"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-6">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Performance Trend</div>
+                            <div class="chart-subtitle">Last 6 cycles</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="employeeLine"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SOLID-LINE MANAGER DASHBOARD -->
+        <div id="manager" class="dashboard-view">
+            <div class="page-header">
+                <div class="header-left">
+                    <h1>Solid-Line Manager Dashboard</h1>
+                    <p>Manage team performance and own appraisal</p>
+                </div>
+                <div class="role-badge">
+                    <span>👥</span> Manager View
+                </div>
+            </div>
+
+            <!-- Personal Information Card -->
+            <div style="background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="border-bottom: 2px solid var(--light-blue); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--dark-text);">Personal Information</div>
+                    <div style="font-size: 0.875rem; color: var(--gray); margin-top: 0.25rem;">Manager details and reporting structure</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Name</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Mr. Sokha Meas</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Position</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Department Head</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Department/WG</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Department of Administration</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Manager</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">General Director</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon teal">👥</div>
+                    <div class="stat-label">Team Size</div>
+                    <div class="stat-value">12</div>
+                    <span class="stat-change positive">Direct Reports</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">📊</div>
+                    <div class="stat-label">Team Completion</div>
+                    <div class="stat-value">75%</div>
+                    <span class="stat-change positive">9/12 Submitted</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">⏳</div>
+                    <div class="stat-label">Pending Reviews</div>
+                    <div class="stat-value">3</div>
+                    <span class="stat-change warning">Awaiting Your Review</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">🔴</div>
+                    <div class="stat-label">Overdue</div>
+                    <div class="stat-value">1</div>
+                    <span class="stat-change danger">Urgent Action</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">⭐</div>
+                    <div class="stat-label">Team Avg Score</div>
+                    <div class="stat-value">87.3</div>
+                    <span class="stat-change positive">↑ 2.1 vs Ministry</span>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card col-4">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Team Grade Distribution</div>
+                            <div class="chart-subtitle">Current cycle</div>
+                        </div>
+                    </div>
+                    <div class="chart-container short">
+                        <canvas id="managerGradeDonut"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-8">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Team Performance Trend</div>
+                            <div class="chart-subtitle">Last 6 cycles comparison</div>
+                        </div>
+                    </div>
+                    <div class="chart-container short">
+                        <canvas id="managerTrendLine"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-12">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Pending Appraisals</div>
+                            <div class="chart-subtitle">Team members awaiting review</div>
+                        </div>
+                        <button class="btn btn-primary">Review All →</button>
+                    </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Employee Name</th>
+                                <th>Position</th>
+                                <th>Submitted Date</th>
+                                <th>Self Score</th>
+                                <th>Status</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Mr. Dara Chan</strong></td>
+                                <td>Senior Officer</td>
+                                <td>Feb 3, 2026</td>
+                                <td><strong>89.5</strong></td>
+                                <td><span class="badge status-pending">Pending Review</span></td>
+                                <td><button class="btn btn-primary btn-sm">Review</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Ms. Channary Lim</strong></td>
+                                <td>Officer</td>
+                                <td>Feb 4, 2026</td>
+                                <td><strong>91.2</strong></td>
+                                <td><span class="badge status-pending">Pending Review</span></td>
+                                <td><button class="btn btn-primary btn-sm">Review</button></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Mr. Sovan Keo</strong></td>
+                                <td>Junior Officer</td>
+                                <td>Feb 1, 2026</td>
+                                <td><strong>82.7</strong></td>
+                                <td><span class="badge status-overdue">Overdue</span></td>
+                                <td><button class="btn btn-warning btn-sm">Review Now</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORKING GROUP LEAD DASHBOARD -->
+        <div id="wglead" class="dashboard-view">
+            <div class="page-header">
+                <div class="header-left">
+                    <h1>Working Group Lead Dashboard</h1>
+                    <p>Manage working group members and score WG KPIs</p>
+                </div>
+                <div class="role-badge">
+                    <span>👨‍💼</span> WG Lead View
+                </div>
+            </div>
+
+            <!-- Personal Information Card -->
+            <div style="background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="border-bottom: 2px solid var(--light-blue); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--dark-text);">Personal Information</div>
+                    <div style="font-size: 0.875rem; color: var(--gray); margin-top: 0.25rem;">WG Lead details and reporting structure</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Name</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Ms. Bopha Rath</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Position</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">WG Lead - Digital Transformation</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Department/WG</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">COE TEAM</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Manager</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Director ICT</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon teal">👥</div>
+                    <div class="stat-label">WG Members</div>
+                    <div class="stat-value">18</div>
+                    <span class="stat-change positive">Digital Transformation WG</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon blue">📊</div>
+                    <div class="stat-label">WG Completion</div>
+                    <div class="stat-value">67%</div>
+                    <span class="stat-change positive">12/18 Scored</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">⏳</div>
+                    <div class="stat-label">Pending WG Scoring</div>
+                    <div class="stat-value">6</div>
+                    <span class="stat-change warning">WG KPIs to Score</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">⭐</div>
+                    <div class="stat-label">WG Avg Score</div>
+                    <div class="stat-value">88.7</div>
+                    <span class="stat-change positive">Above Ministry Avg</span>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card col-6">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">WG Members by Department</div>
+                            <div class="chart-subtitle">Cross-functional distribution</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="wgDeptPie"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-6">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">WG Gender Distribution</div>
+                            <div class="chart-subtitle">Male vs Female members</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="wgGenderDonut"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-12">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">WG Scoring Progress</div>
+                            <div class="chart-subtitle">Members awaiting WG KPI scores</div>
+                        </div>
+                    </div>
+                    <div class="chart-container short">
+                        <canvas id="wgScoringBar"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KPI AUTHORITY DASHBOARD -->
+        <div id="kpi" class="dashboard-view">
+            <div class="page-header">
+                <div class="header-left">
+                    <h1>KPI Authority Dashboard</h1>
+                    <p>Manage KPI library and monitor usage</p>
+                </div>
+                <div class="role-badge">
+                    <span>📋</span> KPI Authority View
+                </div>
+            </div>
+
+            <!-- Personal Information Card -->
+            <div style="background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="border-bottom: 2px solid var(--light-blue); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--dark-text);">Personal Information</div>
+                    <div style="font-size: 0.875rem; color: var(--gray); margin-top: 0.25rem;">KPI Authority details and reporting structure</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Name</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Mr. Virak Nou</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Position</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">KPI Manager</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Department/WG</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Dept of Planning & Finance</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Manager</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Director Planning</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">📚</div>
+                    <div class="stat-label">Total KPIs</div>
+                    <div class="stat-value">127</div>
+                    <span class="stat-change positive">In Library</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">✅</div>
+                    <div class="stat-label">Active KPIs</div>
+                    <div class="stat-value">108</div>
+                    <span class="stat-change positive">85% Active Rate</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">⏳</div>
+                    <div class="stat-label">Pending Review</div>
+                    <div class="stat-value">12</div>
+                    <span class="stat-change warning">Awaiting Approval</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon teal">📊</div>
+                    <div class="stat-label">Usage Rate</div>
+                    <div class="stat-value">94%</div>
+                    <span class="stat-change positive">High Adoption</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">⚠️</div>
+                    <div class="stat-label">Incomplete KPIs</div>
+                    <div class="stat-value">8</div>
+                    <span class="stat-change danger">Need Criteria</span>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card col-4">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">KPIs by Component</div>
+                            <div class="chart-subtitle">Performance breakdown</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="kpiComponentDonut"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-8">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Most Used KPIs</div>
+                            <div class="chart-subtitle">Top 10 by usage frequency</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="kpiUsageBar"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-12">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">KPI Usage Trend</div>
+                            <div class="chart-subtitle">Last 6 cycles</div>
+                        </div>
+                    </div>
+                    <div class="chart-container short">
+                        <canvas id="kpiTrendLine"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HR ADMINISTRATOR DASHBOARD -->
+        <div id="hr" class="dashboard-view">
+            <div class="page-header">
+                <div class="header-left">
+                    <h1>HR Administrator Dashboard</h1>
+                    <p>Ministry-wide analytics and system oversight</p>
+                </div>
+                <div class="role-badge">
+                    <span>🏢</span> HR Admin View
+                </div>
+            </div>
+
+            <!-- Personal Information Card -->
+            <div style="background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="border-bottom: 2px solid var(--light-blue); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--dark-text);">Personal Information</div>
+                    <div style="font-size: 0.875rem; color: var(--gray); margin-top: 0.25rem;">HR Administrator details and reporting structure</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Name</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Ms. Sophea Chan</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Position</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">HR Manager</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Department/WG</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Dept of Personnel & Training</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Manager</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">Director HR</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">👥</div>
+                    <div class="stat-label">Total Workforce</div>
+                    <div class="stat-value">485</div>
+                    <span class="stat-change positive">↑ 12 from last cycle</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">📊</div>
+                    <div class="stat-label">Overall Completion</div>
+                    <div class="stat-value">73%</div>
+                    <span class="stat-change positive">354/485 Finalized</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">⏳</div>
+                    <div class="stat-label">Pending Approvals</div>
+                    <div class="stat-value">87</div>
+                    <span class="stat-change warning">Awaiting Final Approval</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon teal">✅</div>
+                    <div class="stat-label">Approved Today</div>
+                    <div class="stat-value">23</div>
+                    <span class="stat-change positive">↑ 8 from yesterday</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">🔴</div>
+                    <div class="stat-label">Overdue</div>
+                    <div class="stat-value">12</div>
+                    <span class="stat-change danger">Need Follow-up</span>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card col-4">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Grade Distribution</div>
+                            <div class="chart-subtitle">Ministry-wide</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="hrGradeDonut"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-4">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Gender Distribution</div>
+                            <div class="chart-subtitle">Male vs Female</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="hrGenderPie"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-4">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Approval Status</div>
+                            <div class="chart-subtitle">Current cycle</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="hrStatusDonut"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-6">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Department Performance</div>
+                            <div class="chart-subtitle">Average scores</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="hrDeptBar"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-6">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Gender by Grade</div>
+                            <div class="chart-subtitle">Male/Female distribution</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="hrGenderGradeBar"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FINAL APPROVER DASHBOARD -->
+        <div id="approver" class="dashboard-view">
+            <div class="page-header">
+                <div class="header-left">
+                    <h1>Final Approver Dashboard</h1>
+                    <p>General Director - Ministry-wide approval authority</p>
+                </div>
+                <div class="role-badge">
+                    <span>✅</span> Final Approver View
+                </div>
+            </div>
+
+            <!-- Personal Information Card -->
+            <div style="background: white; border-radius: 20px; padding: 2rem; margin-bottom: 2rem; box-shadow: var(--shadow-md);">
+                <div style="border-bottom: 2px solid var(--light-blue); padding-bottom: 1rem; margin-bottom: 1.5rem;">
+                    <div style="font-size: 1.25rem; font-weight: 700; color: var(--dark-text);">Personal Information</div>
+                    <div style="font-size: 0.875rem; color: var(--gray); margin-top: 0.25rem;">General Director details</div>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Name</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">H.E. Sokvannara Chhun</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Position</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">General Director</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Department/WG</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">General Dept of Administration</div>
+                    </div>
+                    <div>
+                        <div style="font-size: 0.875rem; color: var(--gray); margin-bottom: 0.5rem; font-weight: 600;">Manager</div>
+                        <div style="font-size: 1.125rem; font-weight: 700; color: var(--dark-text);">N/A (Top Level)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon blue">👥</div>
+                    <div class="stat-label">Total Workforce</div>
+                    <div class="stat-value">485</div>
+                    <span class="stat-change positive">Ministry-wide</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon orange">⏳</div>
+                    <div class="stat-label">Pending Approvals</div>
+                    <div class="stat-value">87</div>
+                    <span class="stat-change warning">Awaiting Your Review</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon green">✅</div>
+                    <div class="stat-label">Approved Today</div>
+                    <div class="stat-value">23</div>
+                    <span class="stat-change positive">↑ 8 from yesterday</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon red">🔴</div>
+                    <div class="stat-label">Overdue</div>
+                    <div class="stat-value">12</div>
+                    <span class="stat-change danger">Urgent</span>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon teal">⏱️</div>
+                    <div class="stat-label">Avg Approval Time</div>
+                    <div class="stat-value">3.2</div>
+                    <span class="stat-change positive">days (↓ 0.8)</span>
+                </div>
+            </div>
+
+            <div class="charts-grid">
+                <div class="chart-card col-4">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Grade Distribution</div>
+                            <div class="chart-subtitle">Ministry-wide grades</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="approverGradeDonut"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-4">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Gender Distribution</div>
+                            <div class="chart-subtitle">Male vs Female</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="approverGenderPie"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-4">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Approval Status</div>
+                            <div class="chart-subtitle">Current cycle</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="approverStatusDonut"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-6">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Department Performance</div>
+                            <div class="chart-subtitle">Average scores comparison</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="approverDeptBar"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-6">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Gender by Grade</div>
+                            <div class="chart-subtitle">Performance by gender</div>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="approverGenderGradeBar"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-8">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">Approval Trend</div>
+                            <div class="chart-subtitle">Last 30 days activity</div>
+                        </div>
+                    </div>
+                    <div class="chart-container tall">
+                        <canvas id="approverTrendLine"></canvas>
+                    </div>
+                </div>
+                <div class="chart-card col-4">
+                    <div class="chart-header">
+                        <div>
+                            <div class="chart-title">High-Risk Appraisals</div>
+                            <div class="chart-subtitle">Grade D & E by dept</div>
+                        </div>
+                    </div>
+                    <div class="chart-container tall">
+                        <canvas id="approverRiskBar"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Switch Dashboard Function
+        function switchDashboard(role) {
+            // Hide all dashboards
+            document.querySelectorAll('.dashboard-view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected dashboard
+            document.getElementById(role).classList.add('active');
+            
+            // Set active nav item
+            event.currentTarget.classList.add('active');
+            
+            // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Initialize charts for the selected dashboard
+            initCharts(role);
+        }
+
+        // Chart.js Configuration
+        Chart.defaults.font.family = "'Inter', sans-serif";
+        Chart.defaults.color = '#8B9DC3';
+
+        function initCharts(role) {
+            // Destroy existing charts to prevent duplicates
+            Chart.helpers.each(Chart.instances, function(instance) {
+                instance.destroy();
+            });
+
+            // Employee Charts
+            if (role === 'employee') {
+                // Performance Donut
+                new Chart(document.getElementById('employeeDonut'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Work Performance (50%)', 'Competency (20%)', 'Attendance (30%)'],
+                        datasets: [{
+                            data: [98, 0, 95.2],
+                            backgroundColor: ['#667eea', '#f093fb', '#43e97b'],
+                            borderWidth: 4,
+                            borderColor: '#fff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                // Performance Trend Line
+                new Chart(document.getElementById('employeeLine'), {
+                    type: 'line',
+                    data: {
+                        labels: ['2023 H1', '2023 H2', '2024 H1', '2024 H2', '2025 H1', '2025 H2'],
+                        datasets: [{
+                            label: 'My Score',
+                            data: [85, 87, 88, 90, 91, 92.5],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // Manager Charts
+            if (role === 'manager') {
+                new Chart(document.getElementById('managerGradeDonut'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['A', 'B', 'C', 'D'],
+                        datasets: [{
+                            data: [3, 6, 2, 1],
+                            backgroundColor: ['#43e97b', '#667eea', '#fa709a', '#f5576c']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('managerTrendLine'), {
+                    type: 'line',
+                    data: {
+                        labels: ['2023 H1', '2023 H2', '2024 H1', '2024 H2', '2025 H1', '2025 H2'],
+                        datasets: [{
+                            label: 'Team Avg',
+                            data: [83, 84.5, 85.2, 86, 86.8, 87.3],
+                            borderColor: '#667eea',
+                            tension: 0.4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // WG Lead Charts
+            if (role === 'wglead') {
+                new Chart(document.getElementById('wgDeptPie'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Gen Admin', 'ICT', 'Planning', 'HR', 'Legal'],
+                        datasets: [{
+                            data: [5, 6, 3, 2, 2],
+                            backgroundColor: ['#5B9BD5', '#4ECDC4', '#26D07C', '#FFA94D', '#FF6B6B']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('wgGenderDonut'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Male', 'Female'],
+                        datasets: [{
+                            data: [10, 8],
+                            backgroundColor: ['#667eea', '#4facfe']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('wgScoringBar'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Completed', 'Pending', 'Overdue'],
+                        datasets: [{
+                            data: [12, 4, 2],
+                            backgroundColor: ['#43e97b', '#fa709a', '#f5576c'],
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // KPI Authority Charts
+            if (role === 'kpi') {
+                new Chart(document.getElementById('kpiComponentDonut'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Work Performance', 'Competency', 'Attendance'],
+                        datasets: [{
+                            data: [64, 38, 25],
+                            backgroundColor: ['#667eea', '#f093fb', '#43e97b']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '65%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('kpiUsageBar'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Customer Service', 'Project Delivery', 'Quality', 'Efficiency', 'Innovation', 'Leadership', 'Teamwork', 'Communication', 'Analysis', 'Documentation'],
+                        datasets: [{
+                            data: [95, 89, 87, 85, 82, 78, 76, 73, 71, 68],
+                            backgroundColor: '#667eea',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                new Chart(document.getElementById('kpiTrendLine'), {
+                    type: 'line',
+                    data: {
+                        labels: ['2023 H1', '2023 H2', '2024 H1', '2024 H2', '2025 H1', '2025 H2'],
+                        datasets: [{
+                            label: 'KPI Usage Rate',
+                            data: [88, 90, 91, 92, 93, 94],
+                            borderColor: '#667eea',
+                            backgroundColor: 'rgba(102, 126, 234, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+            }
+
+            // HR Admin Charts
+            if (role === 'hr') {
+                new Chart(document.getElementById('hrGradeDonut'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['A', 'B', 'C', 'D', 'E'],
+                        datasets: [{
+                            data: [68, 232, 158, 25, 2],
+                            backgroundColor: ['#43e97b', '#667eea', '#fa709a', '#f5576c', '#e63946']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('hrGenderPie'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Male', 'Female'],
+                        datasets: [{
+                            data: [267, 218],
+                            backgroundColor: ['#667eea', '#4facfe']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('hrStatusDonut'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Finalized', 'Pending', 'Under Review', 'Returned'],
+                        datasets: [{
+                            data: [354, 87, 32, 12],
+                            backgroundColor: ['#26D07C', '#FFA94D', '#5B9BD5', '#FF6B6B']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('hrDeptBar'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Gen Admin', 'ICT', 'Planning', 'HR', 'Legal', 'PR'],
+                        datasets: [{
+                            data: [87.2, 89.5, 85.3, 88.1, 86.7, 84.9],
+                            backgroundColor: '#667eea',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                new Chart(document.getElementById('hrGenderGradeBar'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['A', 'B', 'C', 'D', 'E'],
+                        datasets: [
+                            { label: 'Male', data: [38, 128, 87, 13, 1], backgroundColor: '#667eea' },
+                            { label: 'Female', data: [30, 104, 71, 12, 1], backgroundColor: '#4ECDC4' }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { x: { stacked: true }, y: { stacked: true } },
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+
+            // Final Approver Charts
+            if (role === 'approver') {
+                new Chart(document.getElementById('approverGradeDonut'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['A', 'B', 'C', 'D', 'E'],
+                        datasets: [{
+                            data: [68, 232, 158, 25, 2],
+                            backgroundColor: ['#43e97b', '#667eea', '#fa709a', '#f5576c', '#e63946']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('approverGenderPie'), {
+                    type: 'pie',
+                    data: {
+                        labels: ['Male', 'Female'],
+                        datasets: [{
+                            data: [267, 218],
+                            backgroundColor: ['#667eea', '#4facfe']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('approverStatusDonut'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Finalized', 'Pending', 'Under Review', 'Returned'],
+                        datasets: [{
+                            data: [354, 87, 32, 12],
+                            backgroundColor: ['#26D07C', '#FFA94D', '#5B9BD5', '#FF6B6B']
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '70%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('approverDeptBar'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Gen Admin', 'ICT', 'Planning', 'HR', 'Legal', 'PR'],
+                        datasets: [{
+                            data: [87.2, 89.5, 85.3, 88.1, 86.7, 84.9],
+                            backgroundColor: '#667eea',
+                            borderRadius: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } }
+                    }
+                });
+
+                new Chart(document.getElementById('approverGenderGradeBar'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['A', 'B', 'C', 'D', 'E'],
+                        datasets: [
+                            { label: 'Male', data: [38, 128, 87, 13, 1], backgroundColor: '#667eea' },
+                            { label: 'Female', data: [30, 104, 71, 12, 1], backgroundColor: '#4ECDC4' }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { x: { stacked: true }, y: { stacked: true } },
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('approverTrendLine'), {
+                    type: 'line',
+                    data: {
+                        labels: ['Jan 8', 'Jan 12', 'Jan 16', 'Jan 20', 'Jan 24', 'Jan 28', 'Feb 1', 'Feb 5'],
+                        datasets: [
+                            {
+                                label: 'Approved',
+                                data: [12, 18, 25, 32, 28, 35, 42, 45],
+                                borderColor: '#26D07C',
+                                backgroundColor: 'rgba(38, 208, 124, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            },
+                            {
+                                label: 'Returned',
+                                data: [3, 5, 4, 6, 3, 5, 7, 4],
+                                borderColor: '#FF6B6B',
+                                backgroundColor: 'rgba(255, 107, 107, 0.1)',
+                                tension: 0.4,
+                                fill: true
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+
+                new Chart(document.getElementById('approverRiskBar'), {
+                    type: 'bar',
+                    data: {
+                        labels: ['Gen Admin', 'ICT', 'Planning', 'HR', 'Legal', 'PR'],
+                        datasets: [
+                            { label: 'Grade D', data: [5, 3, 8, 4, 3, 2], backgroundColor: '#FF6B6B' },
+                            { label: 'Grade E', data: [1, 0, 1, 0, 0, 0], backgroundColor: '#C62828' }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { x: { stacked: true }, y: { stacked: true } },
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+        }
+
+        // Initialize Employee dashboard charts on page load
+        initCharts('employee');
+    </script>
+</body>
+</html>
